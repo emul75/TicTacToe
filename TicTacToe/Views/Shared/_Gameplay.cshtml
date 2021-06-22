@@ -1,16 +1,20 @@
 ﻿@model TicTacToe.Entities.Game;
+
 <div id="gameInfo">
     gameID: @Model.Id<br>
     gameName: @Model.Name<br>
     @* player1: @Model.PlayerX.Name<br> *@
     @* player2: @Model.PlayerO *@
 </div>
+<span id="namzwa">@Model.Name</span>
 @for (int i = 0; i < Model.Board.Size; i++)
 {
     <div class="row">
         @for (int j = 0; j < Model.Board.Size; j++)
         {
-            <div class="field" onclick="makeTurn(this, @i, @j, @Model.Id)"></div>
+            <div class="field" id="@i-@j" onclick="makeTurn(this, @i, @j, @Model.Id)"></div>
         }
     </div>
 }
+<button onclick="connectSignalR()">konnect to signullR</button>
+<button onclick="sayHemlo()">hemlo</button>

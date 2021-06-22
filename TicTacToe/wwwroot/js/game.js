@@ -3,22 +3,46 @@ let turnResult;
 let id;
 let playerSymbol = 'X';
 let joinDto;
+const connection = new signalR
+    .HubConnectionBuilder()
+    .withUrl("/gameHub")
+    .configureLogging(signalR.LogLevel.Information)
+    .build();
 
-// example GET:
-//function getPlayerWithId1() {
-//    $.ajax({
-//        type: "GET",
-//        url: "/api/player/1",
-//        contentType: "application/json; charset=utf-8",
-//        success: function (data) {
-//            alert(JSON.stringify(data));
-//            document.getElementById("name").innerHTML = myJson.name;
-//        },
-//        error: function (errMsg) {
-//            alert(errMsg);
-//        }
-//    });
-//}
+connection.on("HemloJs", (mess) => {
+    alert("hemlo " + mess)
+});
+
+//connection.onclose(---);
+
+async function connectSignalR() {
+    await connection.start().then(function () {
+       // alert("connected to hub");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+async function sayHemlo(){
+    let name = document.getElementById("namzwa").value;
+    await connection.invoke("HemloHub", name).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+function makeTurnSignalR(element, x, y, gameId) {
+    let turnDto = {
+        PlayerId: player.id,
+        GameId: gameId,
+        X: x,
+        Y: y
+    };
+
+    connection.invoke("MakeTurn", turnDto);
+
+    element.innerHTML = playerSymbol
+}
+
 
 function makeTurn(element, x, y, gameId) {
     let turnDto = {
@@ -27,11 +51,12 @@ function makeTurn(element, x, y, gameId) {
         X: x,
         Y: y
     };
+
     $.ajax({
         url: "/api/game/maketurn",
         type: "POST",
         data: turnDto,
-        success: function (data) {
+        success: (data) => {
             element.innerHTML = playerSymbol
             console.log(data)
             if (data === TurnResult.PlayerXWon) alert("x won");
@@ -94,6 +119,7 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
         GameId: id,
         PlayerId: player.id,
     };
+
     $.ajax({
         url: '/api/game/join',
         type: "POST",

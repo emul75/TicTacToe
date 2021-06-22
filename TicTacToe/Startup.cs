@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TicTacToe.Entities;
+using TicTacToe.Hubs;
 using TicTacToe.Services;
 
 namespace TicTacToe
@@ -23,6 +24,15 @@ namespace TicTacToe
             services.AddControllersWithViews();
             services.AddScoped<IGameService, GameService>();
             services.AddDbContext<TicTacToeDbContext>();
+            services.AddSignalR();
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("https://localhost:5001")
+                        .AllowCredentials();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,9 +56,12 @@ namespace TicTacToe
 
             app.UseAuthorization();
 
+            app.UseCors();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
+                endpoints.MapHub<GameHub>("/gameHub");
                 //endpoints.MapControllerRoute(
                 //    name: "default",
                 //    pattern: "{controller=Home}/{action=Index}/{id?}");

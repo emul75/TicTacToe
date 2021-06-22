@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using System.Web;
+using Microsoft.AspNetCore.SignalR;
 using TicTacToe.Entities;
 using TicTacToe.Enums;
+using TicTacToe.Hubs;
 using TicTacToe.Models;
 using TicTacToe.Services;
 
@@ -107,12 +109,12 @@ namespace TicTacToe.Controllers
 
             return BadRequest();
         }
-        
+
         [HttpDelete("game/all")]
         public ActionResult DeleteAllGames()
         {
             _gameService.DeleteAllGames();
-                return Ok();
+            return Ok();
         }
 
         [HttpPost("game/join")]
@@ -126,8 +128,8 @@ namespace TicTacToe.Controllers
         public ActionResult<TurnResult> MakeTurn(TurnDto dto)
         {
             // var dto = new TurnDto {X = x, Y = y, PlayerId = playerId};
-            return Ok(_gameService.MakeTurn(dto));
 
+            return Ok(_gameService.MakeTurn(dto));
             /*
             try
             {
