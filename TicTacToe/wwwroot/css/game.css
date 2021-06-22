@@ -1,0 +1,54 @@
+﻿.row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.field {
+    background-color: rgba(36, 36, 85, 0.49);
+    margin: 5px;
+    border: 2px #805382 solid;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    color: #e83e8c;
+}
+
+body {
+    background-color: #12122a;
+}
+
+.navbar-brandd {
+    color: #e83e8c;
+    border: none;
+}
+
+h1 {
+    color: #e83e8c;
+}
+
+button, input {
+    background-color: #6f42c1;
+    border-radius: 20px;
+    border: none;
+    color: #e83e8c;
+    padding: 7px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+
+#nick {
+    display: inline-block;
+}
+
+.gameList, .gameInfo{
+    color: #ff00af;
+}

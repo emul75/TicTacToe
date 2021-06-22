@@ -1,8 +1,12 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿<link href="@Url.Content("~/css/stylwa.css")" rel="stylesheet" type="text/css"/>
+<link href="@Url.Content("../Views/Game/_Board.cshtml")"/>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center" id="gameArea">
+    @{
+        Html.RenderPartial("_Login");
+    }
 </div>
+
+<script src="js/TurnResult.js"></script>
+<script src="js/game.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>

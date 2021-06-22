@@ -1,0 +1,25 @@
+﻿@using TicTacToe.Entities
+@model IEnumerable<TicTacToe.Entities.Game>;
+
+
+
+<div>
+    <input placeholder="game ID" id="gameIdInput">
+    <button onclick="joinGame()">-join-</button>
+    <input placeholder="type board size" id="boardSizeInput">
+    <button onclick="createGame()">-create-</button>
+</div>
+<h1>active games:</h1>
+<ul>
+    @foreach (Game game in Model)
+    {
+        <li>
+            <div class="gameList">
+                @game.Name
+                ID: @game.Id
+                Size: @game.Board.Size
+                <button onclick="joinGame(@game.Id)">-join-</button>
+            </div>
+        </li>
+    }
+</ul>
