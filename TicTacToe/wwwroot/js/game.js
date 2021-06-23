@@ -2,6 +2,7 @@
 let turnResult;
 let id;
 let playerSymbol = 'X';
+let enemySymbol = 'O';
 let joinDto;
 const connection = new signalR
     .HubConnectionBuilder()
@@ -9,38 +10,66 @@ const connection = new signalR
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-connection.on("HemloJs", (mess) => {
-    alert("hemlo " + mess)
+connection.on("getUserConnectionId", (ConnectionId) => {
+    alert("your connection id " + ConnectionId);
+});
+
+connection.on("getUserConnectionId", (ConnectionId) => {
+    alert("your connection id " + ConnectionId);
+});
+
+connection.on("enemyJoined", (gameId) => {
+    alert("ENEMY said hemlo in ur gaem " + gameId);
+});
+
+connection.on("alert", (message) => {
+    alert(message);
+});
+
+connection.on("enemyMove", (turnDto) => {
+    document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML = enemySymbol;
+
 });
 
 //connection.onclose(---);
 
 async function connectSignalR() {
     await connection.start().then(function () {
-       // alert("connected to hub");
+        // alert("connected to hub");
     }).catch(function (err) {
         return console.error(err.toString());
     });
 }
 
-async function sayHemlo(){
-    let name = document.getElementById("namzwa").value;
-    await connection.invoke("HemloHub", name).catch(function (err) {
+
+async function joinGroup() {
+    gameId = document.getElementById("spangameid").innerText;
+    console.log("Trying to join group with gameid = " + gameId)
+    await connection.invoke("JoinGroup", gameId).catch(function (err) {
         return console.error(err.toString());
     });
 }
 
-function makeTurnSignalR(element, x, y, gameId) {
+async function notifyEnemy() {
+    gameId = document.getElementById("spangameid").innerText;
+    await connection.invoke("NotifyEnemy", gameId).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+
+async function makeTurnSignalR(element, x, y, gameId) {
     let turnDto = {
         PlayerId: player.id,
         GameId: gameId,
         X: x,
         Y: y
     };
-
-    connection.invoke("MakeTurn", turnDto);
-
-    element.innerHTML = playerSymbol
+    
+    await connection.invoke("MakeTurn", turnDto).catch(function (err) {
+        return console.error(err.toString());
+    });
+    element.innerHTML = playerSymbol;
 }
 
 
@@ -126,6 +155,7 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
         data: joinDto,
         success: function (data) {
             playerSymbol = 'O';
+            enemySymbol = 'X';
             document.getElementById("gameArea").innerHTML = data
 
             const fields = document.getElementsByClassName("field");
