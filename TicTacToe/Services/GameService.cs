@@ -19,12 +19,13 @@ namespace TicTacToe.Services
         IEnumerable<Game> GetNewGames();
         Game CreateNewGame(int playerId, int size, string name);
         Player CreateNewPlayer(string name);
-        Game JoinGame(int gameId, int playerId);
-
-        // bool ExitGame(int gameId, int playerId);
+        Game Join(int gameId, int playerId);
+        Game Reconnect(int gameId, int playerId);
+        Game PlayerIsInNewOrStartedGame(int playerId);
         bool DeleteGame(int gameId);
         void DeleteAllGames();
         TurnResult MakeTurn(TurnDto dto);
+        bool LeaveGame(int id);
     }
 
     public class GameService : IGameService
@@ -106,6 +107,7 @@ namespace TicTacToe.Services
             return games;
         }
 
+
         public Game CreateNewGame(int playerId, int size, string name)
         {
             if (name == string.Empty)
@@ -138,7 +140,22 @@ namespace TicTacToe.Services
             return player;
         }
 
-        public Game JoinGame(int gameId, int playerId)
+        public Game Reconnect(int gameId, int playerId)
+        {
+            Game game = _dbContext
+                .Games
+                .Include(g => g.PlayerX)
+                .Include(g => g.PlayerO)
+                .Include(g => g.Board)
+                .FirstOrDefault(g =>
+                    g.Id == gameId && (g.PlayerOId == playerId || g.PlayerXId == playerId) &&
+                    g.Status != GameStatus.Finished);
+
+
+            return PlayerIsInNewOrStartedGame(playerId) is not null ? game : null;
+        }
+
+        public Game Join(int gameId, int playerId)
         {
             Game game = _dbContext
                 .Games
@@ -147,7 +164,7 @@ namespace TicTacToe.Services
                 .Include(g => g.Board)
                 .FirstOrDefault(g => g.Id == gameId);
 
-            if (game != null && !PlayerIsInGame(playerId))
+            if (game is not null && PlayerIsInNewOrStartedGame(playerId) is null)
             {
                 if (game.PlayerX is null)
                     game.PlayerX = _dbContext.Players.FirstOrDefault(p => p.Id == playerId);
@@ -215,23 +232,25 @@ namespace TicTacToe.Services
             if (game == null) throw new Exception("Game not found");
             int x = dto.X;
             int y = dto.Y;
-            char[,] boardArray = stringToCharArray(game.Board.BoardArrayString);
+            char[,] boardArray = StringToCharArray(game.Board.BoardArrayString);
 
             if (boardArray[x, y] != '_') throw new Exception("Location is occupied");
             boardArray[x, y] = game.TurnCounter % 2 == 0 ? 'X' : 'O';
             game.TurnCounter++;
-            game.Board.BoardArrayString = charArrayToString(boardArray);
+            game.Board.BoardArrayString = CharArrayToString(boardArray);
             _dbContext.SaveChanges();
             switch (WinningConditionChecker(game, x, y))
             {
                 case TurnResult.PlayerXWon:
                     game.Winner = 'X';
                     game.PlayerX.Wins++;
+                    game.PlayerO.Loses++;
                     game.Status = GameStatus.Finished;
                     _dbContext.SaveChanges();
                     return TurnResult.PlayerXWon;
                 case TurnResult.PlayerOWon:
                     game.Winner = 'O';
+                    game.PlayerX.Loses++;
                     game.PlayerO.Wins++;
                     game.Status = GameStatus.Finished;
                     _dbContext.SaveChanges();
@@ -249,9 +268,21 @@ namespace TicTacToe.Services
             }
         }
 
+        public bool LeaveGame(int id)
+        {
+            Game game = _ticTacToeDbContext
+                .Games
+                .Include(g => g.Board)
+                .FirstOrDefault(g => g.Id == id && g.Status != GameStatus.Finished);
+            if (game is null) return false;
+            _dbContext.Remove(game);
+            _dbContext.SaveChanges();
+            return true;
+        }
+
         private TurnResult WinningConditionChecker(Game game, int turnIndexX, int turnIndexY)
         {
-            char[,] boardArray = stringToCharArray(game.Board.BoardArrayString);
+            char[,] boardArray = StringToCharArray(game.Board.BoardArrayString);
             int symbolsInARowToWin = game.Board.Size > 4 ? 5 : game.Board.Size;
             int maxBoardIndex = game.Board.Size - 1;
             char playerSymbol = (game.TurnCounter - 1) % 2 == 0 ? 'X' : 'O';
@@ -374,22 +405,30 @@ namespace TicTacToe.Services
 
             //      Draw    OR    Continue Game       //
 
-            return game.TurnCounter == ((maxBoardIndex + 1) * (maxBoardIndex + 1))
+            return game.TurnCounter == (maxBoardIndex + 1) * (maxBoardIndex + 1)
                 ? TurnResult.Draw
                 : TurnResult.StillInProgress;
         }
 
-        private bool PlayerIsInGame(int playerId)
+        public Game PlayerIsInNewOrStartedGame(int playerId)
         {
-            return _dbContext.Games.Any(g => g.PlayerXId == playerId || g.PlayerOId == playerId);
+            Game game = _dbContext
+                .Games
+                .Include(g => g.PlayerX)
+                .Include(g => g.PlayerO)
+                .Include(g => g.Board)
+                .FirstOrDefault(g =>
+                    (g.PlayerXId == playerId || g.PlayerOId == playerId) &&
+                    (g.Status != GameStatus.Finished));
+            return game;
         }
 
-        private string charArrayToString(char[,] czar)
+        private string CharArrayToString(char[,] czar)
         {
             return czar.Cast<char>().Aggregate(string.Empty, (current, c) => current + c);
         }
 
-        private char[,] stringToCharArray(string boardString)
+        private char[,] StringToCharArray(string boardString)
         {
             int size = (int) Math.Sqrt(boardString.Length);
             char[,] result = new char[size, size];

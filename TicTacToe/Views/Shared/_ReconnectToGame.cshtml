@@ -1,0 +1,11 @@
+﻿@model TicTacToe.Entities.Game;
+
+<div class="gameList">
+    @Model.Name <br>
+    ID:
+    <span id="currentGameId">@Model.Id</span>
+    <br>
+    @* Size: @Model.Board.Size <br> *@
+</div>
+<button onclick="reconnect(@Model.Id)">-Reconnect to game-</button>
+<button onclick="leaveGame()">-Leave game-</button>

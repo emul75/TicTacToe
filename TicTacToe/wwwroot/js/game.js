@@ -1,37 +1,28 @@
 ﻿let player;
-let turnResult;
-let id;
 let playerSymbol = 'X';
 let enemySymbol = 'O';
-let joinDto;
+
 const connection = new signalR
     .HubConnectionBuilder()
     .withUrl("/gameHub")
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-connection.on("getUserConnectionId", (ConnectionId) => {
-    alert("your connection id " + ConnectionId);
-});
-
-connection.on("getUserConnectionId", (ConnectionId) => {
-    alert("your connection id " + ConnectionId);
-});
 
 connection.on("enemyJoined", (gameId) => {
-    alert("ENEMY said hemlo in ur gaem " + gameId);
+    console.log("ENEMY said hemlo \<3 ");
 });
 
-connection.on("alert", (message) => {
-    alert(message);
+connection.on("enemyLeft", () => {
+    alert("ENEMY left the game.");
+    findGames();
 });
 
-connection.on("enemyMove", (turnDto) => {
-    document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML = enemySymbol;
-
+connection.on("consoleLog", (message) => {
+    console.log("Hub: " + message);
 });
 
-//connection.onclose(---);
+//connection.onclose(leaveGame);
 
 async function connectSignalR() {
     await connection.start().then(function () {
@@ -43,7 +34,7 @@ async function connectSignalR() {
 
 
 async function joinGroup() {
-    gameId = document.getElementById("spangameid").innerText;
+    let gameId = document.getElementById("currentGameId").innerText;
     console.log("Trying to join group with gameid = " + gameId)
     await connection.invoke("JoinGroup", gameId).catch(function (err) {
         return console.error(err.toString());
@@ -51,49 +42,68 @@ async function joinGroup() {
 }
 
 async function notifyEnemy() {
-    gameId = document.getElementById("spangameid").innerText;
+    let gameId = document.getElementById("currentGameId").innerText;
     await connection.invoke("NotifyEnemy", gameId).catch(function (err) {
         return console.error(err.toString());
     });
 }
 
-
-async function makeTurnSignalR(element, x, y, gameId) {
+//TURNS
+async function makeTurn(element, x, y, gameId) {
     let turnDto = {
         PlayerId: player.id,
         GameId: gameId,
         X: x,
         Y: y
     };
-    
+
     await connection.invoke("MakeTurn", turnDto).catch(function (err) {
         return console.error(err.toString());
     });
     element.innerHTML = playerSymbol;
 }
 
+connection.on("turnResult", (turnDto, turnResultEnum) => {
+    if (document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML === "") {
+        document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML = enemySymbol;
+    }
 
-function makeTurn(element, x, y, gameId) {
-    let turnDto = {
-        PlayerId: player.id,
-        GameId: gameId,
-        X: x,
-        Y: y
-    };
+    switch (turnResultEnum) {
+        case TurnResult.PlayerXWon:
+            alert("player X won");
+            findGames();
+            connection.stop();
+            break;
+        case TurnResult.PlayerOWon:
+            alert("player O won");
+            findGames();
+            connection.stop();
+            break;
+        case TurnResult.Draw:
+            alert("player X won");
+            findGames();
+            connection.stop();
+            break;
+    }
+});
+
+function leaveGame() {
+    let gameId = document.getElementById("currentGameId").innerText;
+    console.log("Game " + gameId + " has been deleted.");
 
     $.ajax({
-        url: "/api/game/maketurn",
-        type: "POST",
-        data: turnDto,
-        success: (data) => {
-            element.innerHTML = playerSymbol
-            console.log(data)
-            if (data === TurnResult.PlayerXWon) alert("x won");
-            if (data === TurnResult.PlayerOWon) alert("o won");
-            if (data === TurnResult.Draw) alert("draww");
+        url: "/api/game/leave/",
+        type: "DELETE",
+        data: {id: gameId},
+        // dataType: 'text',
+        success: async function () {
+            console.log("Game " + gameId + " has been deleted.");
+            await connection.invoke("EnemyLeft", gameId);
+            await connection.stop();
+            findGames();
         },
         error: function (error) {
-            alert(error + "błomd fillField");
+            alert(error.responseText);
             console.log(error);
         }
     });
@@ -108,8 +118,7 @@ function login() {
         success: function (data) {
             player = data;
             document.getElementById("nick").innerHTML = data.name;
-            id = player.id;
-            findGames(player.id);
+            findGames();
         },
         error: function (error) {
             alert(error.responseText);
@@ -136,12 +145,14 @@ function createGame() {
                 fields[i].style.width = "100px";
                 fields[i].style.height = "100px";
             }
+            connectSignalR().then(joinGroup);
         },
         error: function (error) {
             alert(error);
         },
     });
 }
+
 
 function joinGame(id = document.getElementById("gameIdInput").value) {
     let joinDto = {
@@ -164,6 +175,8 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
                 fields[i].style.width = "100px";
                 fields[i].style.height = "100px";
             }
+            connectSignalR().then(joinGroup).then(notifyEnemy);
+
         },
         error: function (error) {
             alert(error);
@@ -171,11 +184,41 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
     });
 }
 
-function findGames(playerId) {
+function reconnect(id = document.getElementById("currentGameId").value) {
+    let joinDto = {
+        GameId: id,
+        PlayerId: player.id,
+    };
+
+    $.ajax({
+        url: '/api/game/reconnect',
+        type: "POST",
+        data: joinDto,
+        success: function (data) {
+            playerSymbol = 'O';
+            enemySymbol = 'X';
+            document.getElementById("gameArea").innerHTML = data
+
+            const fields = document.getElementsByClassName("field");
+
+            for (let i = 0; i < fields.length; i++) {
+                fields[i].style.width = "100px";
+                fields[i].style.height = "100px";
+            }
+            connectSignalR().then(joinGroup).then(notifyEnemy);
+
+        },
+        error: function (error) {
+            alert(error);
+        },
+    });
+}
+
+function findGames() {
     $.ajax({
         url: "/api/game/new",
         type: "GET",
-        // data: {name},
+        data: {playerId: player.id},
         success: function (data) {
             document.getElementById("gameArea").innerHTML = data
         },

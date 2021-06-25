@@ -85,29 +85,39 @@ namespace TicTacToe.Controllers
         }
 
         [HttpGet("game/new")]
-        public ActionResult GetNewGames()
+        public ActionResult GetNewGames(int playerId)
         {
+            Game game = _gameService.PlayerIsInNewOrStartedGame(playerId);
+            if (game is not null) return PartialView("_ReconnectToGame", game);
+            
             var games = _gameService.GetNewGames();
             return PartialView("_FindGames", games);
+
         }
 
         [HttpPost("game/create")]
         public ActionResult CreateNewGame(CreateGameDto dto)
         {
             Game game = _gameService.CreateNewGame(dto.PlayerId, dto.BoardSize, dto.Name);
-            game = _gameService.JoinGame(game.Id, dto.PlayerId);
+            game = _gameService.Join(game.Id, dto.PlayerId);
             return PartialView("_Gameplay", game);
         }
 
-        [HttpDelete("game/{id}")]
+        [HttpDelete("game/{id:int}")]
         public ActionResult DeleteGame(int id)
         {
             if (_gameService.DeleteGame(id))
             {
                 return Ok();
             }
-
             return BadRequest();
+        }
+
+        [HttpDelete("game/leave")]
+        public ActionResult LeaveGame(int id)
+        {
+            _gameService.LeaveGame(id);
+            return Ok();
         }
 
         [HttpDelete("game/all")]
@@ -117,28 +127,24 @@ namespace TicTacToe.Controllers
             return Ok();
         }
 
-        [HttpPost("game/join")]
-        public ActionResult Join(int gameId, int playerId)
+        [HttpPost("game/reconnect")]
+        public ActionResult Reconnect(JoinGameDto dto)
         {
-            Game game = _gameService.JoinGame(gameId, playerId);
+            Game game = _gameService.Reconnect(dto.GameId, dto.PlayerId);
+            return PartialView("_Gameplay", game);
+        }
+        
+        [HttpPost("game/join")]
+        public ActionResult Join(JoinGameDto dto)
+        {
+            Game game = _gameService.Join(dto.GameId, dto.PlayerId);
             return PartialView("_Gameplay", game);
         }
 
         [HttpPost("game/maketurn")]
         public ActionResult<TurnResult> MakeTurn(TurnDto dto)
         {
-            // var dto = new TurnDto {X = x, Y = y, PlayerId = playerId};
-
             return Ok(_gameService.MakeTurn(dto));
-            /*
-            try
-            {
-                return Ok(_gameService.MakeTurn(turnDto));
-            }
-            catch (Exception e)
-            {
-                return BadRequest();
-            }*/
         }
     }
 }
