@@ -1,10 +1,10 @@
 ﻿@model TicTacToe.Entities.Game;
 
-<div id="gameInfo">
-    gameID: <span id="currentGameId">@Model.Id</span><br>
-    gameName: @Model.Name<br>
-    @* player1: @Model.PlayerX.Name<br> *@
-    @* player2: @Model.PlayerO *@
+<div id="gameDetails">
+    @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<span></span>@Model.Board.Size<br>
+<br><br>
+
+    <h1 id="gameStatus">waiting for second player</h1>
 </div>
 @for (int i = 0; i < Model.Board.Size; i++)
 {
@@ -15,8 +15,5 @@
         }
     </div>
 }
-<button onclick="connectSignalR()">konnect to signullR</button>
-<button onclick="joinGroup()">join game group</button>
-<button onclick="notifyEnemy()">hemlo to enemy</button>
 <br>
 <button onclick="leaveGame()">-leave game-</button>

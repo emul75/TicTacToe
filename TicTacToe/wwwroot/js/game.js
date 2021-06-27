@@ -1,6 +1,8 @@
 ﻿let player;
 let playerSymbol = 'X';
 let enemySymbol = 'O';
+let nowPlaying = 'X';
+let turnCounter = 0;
 
 const connection = new signalR
     .HubConnectionBuilder()
@@ -10,7 +12,8 @@ const connection = new signalR
 
 
 connection.on("enemyJoined", (gameId) => {
-    console.log("ENEMY said hemlo \<3 ");
+    console.log("ENEMY joined ");
+    gameDetails();
 });
 
 connection.on("enemyLeft", () => {
@@ -50,24 +53,25 @@ async function notifyEnemy() {
 
 //TURNS
 async function makeTurn(element, x, y, gameId) {
+    if (element.innerHTML !== "") return;
     let turnDto = {
         PlayerId: player.id,
         GameId: gameId,
         X: x,
         Y: y
     };
-
     await connection.invoke("MakeTurn", turnDto).catch(function (err) {
         return console.error(err.toString());
     });
     element.innerHTML = playerSymbol;
+    gameDetails();
 }
 
 connection.on("turnResult", (turnDto, turnResultEnum) => {
     if (document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML === "") {
         document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML = enemySymbol;
     }
-
+    gameDetails();
     switch (turnResultEnum) {
         case TurnResult.PlayerXWon:
             alert("player X won");
@@ -80,7 +84,7 @@ connection.on("turnResult", (turnDto, turnResultEnum) => {
             connection.stop();
             break;
         case TurnResult.Draw:
-            alert("player X won");
+            alert("draw");
             findGames();
             connection.stop();
             break;
@@ -175,7 +179,7 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
                 fields[i].style.width = "100px";
                 fields[i].style.height = "100px";
             }
-            connectSignalR().then(joinGroup).then(notifyEnemy);
+            connectSignalR().then(joinGroup).then(notifyEnemy).then(gameDetails);
 
         },
         error: function (error) {
@@ -221,6 +225,21 @@ function findGames() {
         data: {playerId: player.id},
         success: function (data) {
             document.getElementById("gameArea").innerHTML = data
+        },
+        error: function (error) {
+            alert(error.responseText);
+            console.log(error);
+        }
+    });
+}
+
+function gameDetails() {
+    let gameId = document.getElementById("currentGameId").innerText;
+    $.ajax({
+        url: "/api/game/details/" + gameId,
+        type: "GET",
+        success: async function (data) {
+            document.getElementById("gameDetails").innerHTML = data
         },
         error: function (error) {
             alert(error.responseText);

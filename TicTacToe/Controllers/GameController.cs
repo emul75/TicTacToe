@@ -83,6 +83,13 @@ namespace TicTacToe.Controllers
             Game game = _gameService.GetGameById(id);
             return Ok(game);
         }
+        
+        [HttpGet("game/details/{id:int}")]
+        public ActionResult GetGameDetails(int id)
+        {
+            Game game = _gameService.GetGameById(id);
+            return PartialView("_gameDetails", game);
+        }
 
         [HttpGet("game/new")]
         public ActionResult GetNewGames(int playerId)

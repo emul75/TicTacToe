@@ -49,6 +49,6 @@ button, input {
     display: inline-block;
 }
 
-.gameList, #gameInfo{
+.gameList, #gameDetails{
     color: #ff00af;
 }

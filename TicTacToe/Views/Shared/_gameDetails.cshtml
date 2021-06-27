@@ -1,0 +1,10 @@
+﻿@model TicTacToe.Entities.Game;
+<div id="gameDetails">
+    @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<a></a>@Model.TurnCounter
+    <br>
+    player X | @Model.PlayerX.Name
+    <br>
+    player O | @Model.PlayerO.Name
+    <br><br>
+    <h1 id="gameStatus">player X turn</h1>
+</div>

@@ -4,14 +4,18 @@
 
 
 <div>
-    <input placeholder="game ID" id="gameIdInput">
-    <button onclick="joinGame()">-join-</button>
-    <input placeholder="type board size" id="boardSizeInput">
+    
+    @* <input placeholder="game ID" id="gameIdInput"> *@
+    @* <button onclick="joinGame()">-join-</button> *@
+    
+    <h1>create new game</h1>
+    <input placeholder="type board size" id="boardSizeInput"><br>
     <button onclick="createGame()">-create-</button><br>
-        <button onclick="findGames()">-Refresh list-</button>
 
 </div>
-<h1>active games:</h1>
+<h1>new games to join</h1>
+        <button onclick="findGames()">-Refresh list-</button>
+
 <ul>
     @foreach (Game game in Model)
     {
