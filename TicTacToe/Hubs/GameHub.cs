@@ -17,13 +17,7 @@ namespace TicTacToe.Hubs
         {
             _service = service;
         }
-
-        public Task HemloHub(string name)
-        {
-            //OnDisconnectedAsync(exception => Clients.OthersInGroup("enemyLeft"));
-
-            return Clients.All.SendAsync("HemloJs", name);
-        }
+        
 
         public Task NotifyEnemy(string gameId)
         {
@@ -34,12 +28,6 @@ namespace TicTacToe.Hubs
         {
             return Clients.OthersInGroup("gameGroup" + gameId).SendAsync("enemyLeft", gameId);
         }
-
-        // public override Task OnDisconnectedAsync(Exception? exception)
-        // {
-        //     _service.LeaveGame(int.Parse(lastGameId));
-        //     return Clients.OthersInGroup("gameGroup" + lastGameId).SendAsync("enemyLeft");
-        // }
 
         public Task JoinGroup(string gameId)
         {

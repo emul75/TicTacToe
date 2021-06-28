@@ -2,6 +2,8 @@
 let playerSymbol = 'X';
 let turnCounter = -1;
 
+
+
 const connection = new signalR
     .HubConnectionBuilder()
     .withUrl("/gameHub")
@@ -9,9 +11,11 @@ const connection = new signalR
     .build();
 
 
+
 connection.on("enemyJoined", (gameId) => {
     console.log("ENEMY joined ");
-    gameDetails();
+    updateGameDetails();
+    updatePlayerSymbol();
 });
 
 connection.on("enemyLeft", () => {
@@ -23,58 +27,8 @@ connection.on("consoleLog", (message) => {
     console.log("Hub: " + message);
 });
 
-//connection.onclose(leaveGame);
-
-async function connectSignalR() {
-    await connection.start().then(function () {
-        // alert("connected to hub");
-    }).catch(function (err) {
-        return console.error(err.toString());
-    });
-}
-
-
-async function joinGroup() {
-    let gameId = document.getElementById("currentGameId").innerText;
-    console.log("Trying to join group with gameid = " + gameId)
-    await connection.invoke("JoinGroup", gameId).catch(function (err) {
-        return console.error(err.toString());
-    });
-}
-
-async function notifyEnemy() {
-    let gameId = document.getElementById("currentGameId").innerText;
-    await connection.invoke("NotifyEnemy", gameId).catch(function (err) {
-        return console.error(err.toString());
-    });
-}
-
-
-async function makeTurn(element, x, y, gameId) {
-    if (turnCounter < 0) return;
-    if (element.innerHTML !== "") return;
-
-    let currentTurn = document.getElementById("currentTurn").innerText;
-    if (currentTurn !== playerSymbol) return;
-
-    let turnDto = {
-        PlayerId: player.id,
-        GameId: gameId,
-        X: x,
-        Y: y
-    };
-
-    await connection.invoke("MakeTurn", turnDto).catch(function (err) {
-        return console.error(err.toString());
-    });
-
-    gameDetails();
-    element.innerHTML = currentTurn;
-
-}
-
 connection.on("turnResult", (turnDto, turnResultEnum) => {
-    gameDetails();
+    updateGameDetails();
     if (document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML === "") {
         document.getElementById(turnDto.x + "-" + turnDto.y).innerHTML = document.getElementById("currentTurn").innerText;
 
@@ -98,6 +52,58 @@ connection.on("turnResult", (turnDto, turnResultEnum) => {
     }
 
 });
+
+
+
+
+async function connectSignalR() {
+    await connection.start().then(function () {
+        // alert("connected to hub");
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+async function joinGroup() {
+    let gameId = document.getElementById("currentGameId").innerText;
+    console.log("Trying to join group with gameid = " + gameId)
+    await connection.invoke("JoinGroup", gameId).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+async function notifyEnemy() {
+    let gameId = document.getElementById("currentGameId").innerText;
+    await connection.invoke("NotifyEnemy", gameId).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+
+
+
+async function makeTurn(element, x, y, gameId) {
+    if (turnCounter < 0) return;
+    if (element.innerHTML !== "") return;
+
+    let currentTurn = document.getElementById("currentTurn").innerText;
+    if (currentTurn !== playerSymbol) return;
+
+    let turnDto = {
+        PlayerId: player.id,
+        GameId: gameId,
+        X: x,
+        Y: y
+    };
+
+    await connection.invoke("MakeTurn", turnDto).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    updateGameDetails();
+    element.innerHTML = currentTurn;
+
+}
 
 function leaveGame() {
     let gameId = document.getElementById("currentGameId").innerText;
@@ -184,7 +190,6 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
         type: "POST",
         data: joinDto,
         success: function (data) {
-            playerSymbol = 'O';
             document.getElementById("gameArea").innerHTML = data
 
             const fields = document.getElementsByClassName("field");
@@ -194,7 +199,8 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
                 fields[i].style.height = "100px";
             }
             connectSignalR().then(joinGroup).then(notifyEnemy);
-            gameDetails();
+            updateGameDetails();
+            updatePlayerSymbol();
         },
         error: function (error) {
             alert(error);
@@ -221,12 +227,13 @@ function reconnect(id = document.getElementById("currentGameId").value) {
                 fields[i].style.width = "100px";
                 fields[i].style.height = "100px";
             }
-            connectSignalR().then(joinGroup).then(notifyEnemy);
+            connectSignalR().then(joinGroup);
             try{
-                gameDetails();
+                updateGameDetails();
             } catch {
                 console.log("w8in for 2nd player");
             }
+            updatePlayerSymbol();
         },
         error: function (error) {
             alert(error);
@@ -249,7 +256,7 @@ function findGames() {
     });
 }
 
-function gameDetails() {
+function updateGameDetails() {
     let gameId = document.getElementById("currentGameId").innerText;
     $.ajax({
         url: "/api/game/details/" + gameId,
@@ -263,4 +270,13 @@ function gameDetails() {
             console.log(error);
         }
     });
+}
+
+function updatePlayerSymbol(){
+    if (document.getElementById("playerXName").innerText === player.name){
+        playerSymbol = 'X';
+    }
+    if (document.getElementById("playerOName").innerText === player.name){
+        playerSymbol = 'O';
+    }
 }

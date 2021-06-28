@@ -14,9 +14,10 @@ else
     <div>
         @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<span id="turnCounter">@Model.TurnCounter</span>
         <br><br><br>
-        player X | @Model.PlayerX.Name
+        
+        player X | <span id="playerXName">@Model.PlayerX.Name</span>
         <br>
-        player O | @Model.PlayerO.Name
+        player O | <span id="playerOName">@Model.PlayerO.Name</span>
         <br><br>
         @{
             char currentTurn = Model.TurnCounter % 2 == 0 ? 'X' : 'O';
