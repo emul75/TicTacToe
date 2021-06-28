@@ -108,7 +108,6 @@ async function makeTurn(element, x, y, gameId) {
 function leaveGame() {
     let gameId = document.getElementById("currentGameId").innerText;
     console.log("Trying to delete game " + gameId);
-
     $.ajax({
         url: "/api/game/leave/",
         type: "DELETE",
@@ -128,6 +127,7 @@ function leaveGame() {
 
 function login() {
     const name = document.getElementById("nickInput").value;
+    
     $.ajax({
         url: "/api/player",
         type: "POST",
@@ -146,8 +146,7 @@ function login() {
 
 function createGame() {
     let boardSize = parseInt(document.getElementById("boardSizeInput").value);
-    console.log(boardSize);
-    console.log(boardSize);
+
     if (!Number.isInteger(boardSize) || boardSize < 1) {
         alert("Incorrect size");
         return;
