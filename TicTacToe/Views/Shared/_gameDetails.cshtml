@@ -1,10 +1,26 @@
-﻿@model TicTacToe.Entities.Game;
-<div id="gameDetails">
-    @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<a></a>@Model.TurnCounter
-    <br>
-    player X | @Model.PlayerX.Name
-    <br>
-    player O | @Model.PlayerO.Name
-    <br><br>
-    <h1 id="gameStatus">player X turn</h1>
-</div>
+﻿@using TicTacToe.Enums
+@model TicTacToe.Entities.Game;
+
+@if (Model.Status == GameStatus.Created)
+{
+    <div>
+        @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<span id="turnCounter">@Model.TurnCounter</span>
+        <br><br>
+        <h1 id="gameStatus">waiting for second player</h1>
+    </div>
+}
+else
+{
+    <div>
+        @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<span id="turnCounter">@Model.TurnCounter</span>
+        <br><br><br>
+        player X | @Model.PlayerX.Name
+        <br>
+        player O | @Model.PlayerO.Name
+        <br><br>
+        @{
+            char currentTurn = Model.TurnCounter % 2 == 0 ? 'X' : 'O';
+        }
+        <h1 id="gameStatus">player <span id="currentTurn">@currentTurn</span> turn</h1>
+    </div>
+}
