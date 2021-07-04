@@ -196,7 +196,8 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
             updateGameDetails();
         },
         error: function (error) {
-            alert(error);
+            console.log(error + " game not found")
+            findGames();
         },
     });
 }
@@ -228,7 +229,8 @@ function reconnect(id = document.getElementById("currentGameId").value) {
             }
         },
         error: function (error) {
-            alert(error);
+            console.log(error + " game not found")
+            findGames();
         },
     });
 
@@ -352,7 +354,7 @@ function replayPreviousTurn() {
     if (turn < 1) return;
 
     let currentSymbol = document.getElementById("currentTurn").innerText;
-    let coords = movesHistory.split(";")[turn-1];
+    let coords = movesHistory.split(";")[turn - 1];
     document.getElementById(coords).innerHTML = "";
 
     if (currentSymbol === "X") document.getElementById("currentTurn").innerText = "O";
