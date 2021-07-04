@@ -3,13 +3,11 @@ let playerSymbol = 'X';
 let turnCounter = -1;
 
 
-
 const connection = new signalR
     .HubConnectionBuilder()
     .withUrl("/gameHub")
     .configureLogging(signalR.LogLevel.Information)
     .build();
-
 
 
 connection.on("enemyJoined", (gameId) => {
@@ -53,8 +51,6 @@ connection.on("turnResult", (turnDto, turnResultEnum) => {
 });
 
 
-
-
 async function connectSignalR() {
     await connection.start().then(function () {
         // alert("connected to hub");
@@ -79,12 +75,10 @@ async function notifyEnemy() {
 }
 
 
-
-
 async function makeTurn(element, x, y, gameId) {
     if (turnCounter < 0) return;
     if (element.innerHTML === "X" || element.innerHTML === "O") return;
-    
+
     updatePlayerSymbol();
     let currentTurn = document.getElementById("currentTurn").innerText;
     if (currentTurn !== playerSymbol) return;
@@ -127,7 +121,7 @@ function leaveGame() {
 
 function login() {
     const name = document.getElementById("nickInput").value;
-    
+
     $.ajax({
         url: "/api/player",
         type: "POST",
@@ -226,7 +220,7 @@ function reconnect(id = document.getElementById("currentGameId").value) {
                 fields[i].style.height = "100px";
             }
             connectSignalR().then(joinGroup);
-            try{
+            try {
                 updateGameDetails();
             } catch {
                 console.log("w8in' for 2nd player");
@@ -253,6 +247,28 @@ function findGames() {
         }
     });
 }
+//////
+function watchReplay(gameId) {
+    $.ajax({
+        url: "/api/game/" + gameId,
+        type: "GET",
+        success: function (data) {
+            document.getElementById("replyArea").innerHTML = data
+
+            const fields = document.getElementsByClassName("field");
+
+            for (let i = 0; i < fields.length; i++) {
+                fields[i].style.width = "100px";
+                fields[i].style.height = "100px";
+            }
+            connectSignalR().then(joinGroup).then(notifyEnemy);
+            updateGameDetails();
+        },
+        error: function (error) {
+            alert(error);
+        },
+    });
+}
 
 function updateGameDetails() {
     let gameId = document.getElementById("currentGameId").innerText;
@@ -270,11 +286,11 @@ function updateGameDetails() {
     });
 }
 
-function updatePlayerSymbol(){
-    if (document.getElementById("playerXName").innerText === player.name){
+function updatePlayerSymbol() {
+    if (document.getElementById("playerXName").innerText === player.name) {
         playerSymbol = 'X';
     }
-    if (document.getElementById("playerOName").innerText === player.name){
+    if (document.getElementById("playerOName").innerText === player.name) {
         playerSymbol = 'O';
     }
 }

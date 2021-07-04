@@ -218,6 +218,18 @@ namespace TicTacToe.Services
             _dbContext.SaveChanges();
         }
 
+        public bool LeaveGame(int id)
+        {
+            Game game = _ticTacToeDbContext
+                .Games
+                .Include(g => g.Board)
+                .FirstOrDefault(g => g.Id == id && g.Status != GameStatus.Finished);
+            if (game is null) return false;
+            _dbContext.Remove(game);
+            _dbContext.SaveChanges();
+            return true;
+        }
+
         public TurnResult MakeTurn(TurnDto dto)
         {
             var games = _dbContext.Games.ToList();
@@ -236,9 +248,11 @@ namespace TicTacToe.Services
 
             if (boardArray[x, y] != '_') throw new Exception("Location is occupied");
             boardArray[x, y] = game.TurnCounter % 2 == 0 ? 'X' : 'O';
+            game.Board.MovesHistory += dto.X + "-" + dto.Y + ";";
             game.TurnCounter++;
             game.Board.BoardArrayString = CharArrayToString(boardArray);
             _dbContext.SaveChanges();
+            
             switch (WinningConditionChecker(game, x, y))
             {
                 case TurnResult.PlayerXWon:
@@ -266,18 +280,6 @@ namespace TicTacToe.Services
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public bool LeaveGame(int id)
-        {
-            Game game = _ticTacToeDbContext
-                .Games
-                .Include(g => g.Board)
-                .FirstOrDefault(g => g.Id == id && g.Status != GameStatus.Finished);
-            if (game is null) return false;
-            _dbContext.Remove(game);
-            _dbContext.SaveChanges();
-            return true;
         }
 
         private TurnResult WinningConditionChecker(Game game, int turnIndexX, int turnIndexY)

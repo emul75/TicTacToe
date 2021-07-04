@@ -1,0 +1,25 @@
+@model TicTacToe.Entities.Player;
+
+<div id="playerDetails">
+    -@Model.Name
+    -
+    <br>
+    -id @Model.Id
+    -
+    <br>
+    -wins @Model.Wins
+    -
+    <br>
+    -loses @Model.Loses
+    -
+    <br>
+    -draws @Model.Draws
+    -
+    <br>
+    -player since @Model.AccountCreated.Month @Model.AccountCreated.Year
+    -
+    <br>
+    <br>
+</div>
+
+<div id="historyList"></div>

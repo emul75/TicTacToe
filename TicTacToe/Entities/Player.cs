@@ -11,6 +11,5 @@ namespace TicTacToe.Entities
         public int Draws { get; set; }
         public DateTime AccountCreated { get; set; }
         public int GamesPlayed => Wins + Loses + Draws;
-        //public virtual List<Game> Games { get; set; }
     }
 }

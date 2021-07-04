@@ -1,0 +1,25 @@
+﻿@using TicTacToe.Entities
+@model IEnumerable<TicTacToe.Entities.Game>;
+
+
+<h1>
+    games
+</h1>
+
+<ul>
+    @foreach (Game game in Model)
+    {
+        <li>
+            <div class="gameList">
+                @game.Name<br>
+                ID: @game.Id <br>
+                Size: @game.Board.Size<br>
+                Date: @game.GameCreated.Year <br>
+                @game.PlayerX.Name vs @game.PlayerO.Name <br>
+                <button onclick="watchReplay(@game.Id)">-watch replay-</button>
+                <br>
+                <br>
+            </div>
+        </li>
+    }
+</ul>
