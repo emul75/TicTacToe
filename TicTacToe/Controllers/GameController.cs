@@ -42,6 +42,18 @@ namespace TicTacToe.Controllers
             return Ok(player);
         }
 
+        [HttpGet("player/profile/{id:int}")]
+        public ActionResult<Player> GetPlayerProfile(int id)
+        {
+            Player player = _gameService.GetPlayerById(id);
+            if (player == null)
+            {
+                return BadRequest();
+            }
+
+            return PartialView("_PlayerProfile", player);
+        }
+        
         [HttpGet("player")]
         public ActionResult<Player> GetPlayerByName(string name)
         {
@@ -62,12 +74,12 @@ namespace TicTacToe.Controllers
             var games = _gameService.GetAllGames();
             return Ok(games);
         }
-
-        [HttpGet("games")]
-        public ActionResult<IEnumerable<Game>> GetAllGamesFromPlayer(int playerId)
+        
+        [HttpGet("game/player/{playerId:int}")]
+        public ActionResult GetAllGamesFromPlayer(int playerId)
         {
             var games = _gameService.GetAllGamesFromPlayer(playerId);
-            return Ok(games);
+            return PartialView("_GamesHistoryList", games);
         }
 
         [HttpGet("game/{id:int}")]
@@ -75,6 +87,14 @@ namespace TicTacToe.Controllers
         {
             Game game = _gameService.GetGameById(id);
             return Ok(game);
+        }
+        
+        //temp 
+        [HttpGet("game/replay/{id:int}")]
+        public ActionResult GetGameReplay(int id)
+        {
+            Game game = _gameService.GetGameById(id);
+            return PartialView("_Replay", game);
         }
 
         [HttpGet("game/details/{id:int}")]

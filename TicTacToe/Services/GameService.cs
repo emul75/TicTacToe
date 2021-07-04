@@ -79,7 +79,7 @@ namespace TicTacToe.Services
                 .Include(g => g.PlayerX)
                 .Include(g => g.PlayerO)
                 .Include(g => g.Board)
-                .Where(p => p.PlayerX.Id == id || p.PlayerO.Id == id)
+                .Where(g => (g.PlayerX.Id == id || g.PlayerO.Id == id) && g.Status == GameStatus.Finished)
                 .ToList();
             return games;
         }
@@ -252,7 +252,7 @@ namespace TicTacToe.Services
             game.TurnCounter++;
             game.Board.BoardArrayString = CharArrayToString(boardArray);
             _dbContext.SaveChanges();
-            
+
             switch (WinningConditionChecker(game, x, y))
             {
                 case TurnResult.PlayerXWon:

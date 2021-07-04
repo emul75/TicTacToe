@@ -1,0 +1,38 @@
+﻿@model TicTacToe.Entities.Game;
+<h1>
+    replay
+    </h1>
+
+<div id="gameDetails">
+    @Model.Name | id<span id="currentGameId">@Model.Id</span> | size<a></a>@Model.Board.Size | turncount<span id="turnCounter">0</span>
+    <br>
+        
+    player X | <span id="playerXName">@Model.PlayerX.Name</span>
+    <br>
+    player O | <span id="playerOName">@Model.PlayerO.Name</span>
+    <br><br>
+    
+    <h1 id="gameStatus">player <span id="currentTurn">X</span> turn</h1>
+</div>
+<div>
+    <button onclick="replayPreviousTurn()">previous turn</button>
+    <button onclick="replayNextTurn()">next turn</button>
+</div>
+
+
+@{
+    for (int i = 0; i < Model.Board.Size; i++)
+    {
+        <div class="row">
+            @for (int j = 0; j < Model.Board.Size; j++)
+            {
+                <div class="field" id="@i-@j" ></div>
+            }
+        </div>
+    }
+}
+
+<br>
+<button onclick="findGames()">
+    -leave replay-
+</button>

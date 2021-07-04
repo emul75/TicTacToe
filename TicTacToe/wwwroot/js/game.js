@@ -1,6 +1,7 @@
 ﻿let player;
 let playerSymbol = 'X';
 let turnCounter = -1;
+let movesHistory;
 
 
 const connection = new signalR
@@ -183,7 +184,7 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
         type: "POST",
         data: joinDto,
         success: function (data) {
-            document.getElementById("gameArea").innerHTML = data
+            document.getElementById("gameArea").innerHTML = data;
 
             const fields = document.getElementsByClassName("field");
 
@@ -239,7 +240,7 @@ function findGames() {
         type: "GET",
         data: {playerId: player.id},
         success: function (data) {
-            document.getElementById("gameArea").innerHTML = data
+            document.getElementById("gameArea").innerHTML = data;
         },
         error: function (error) {
             alert(error.responseText);
@@ -247,26 +248,31 @@ function findGames() {
         }
     });
 }
-//////
-function watchReplay(gameId) {
+
+function goToPlayerProfile() {
+
     $.ajax({
-        url: "/api/game/" + gameId,
+        url: "/api/player/profile/" + player.id,
         type: "GET",
+        data: {playerId: player.id},
         success: function (data) {
-            document.getElementById("replyArea").innerHTML = data
-
-            const fields = document.getElementsByClassName("field");
-
-            for (let i = 0; i < fields.length; i++) {
-                fields[i].style.width = "100px";
-                fields[i].style.height = "100px";
-            }
-            connectSignalR().then(joinGroup).then(notifyEnemy);
-            updateGameDetails();
+            document.getElementById("gameArea").innerHTML = data;
         },
         error: function (error) {
-            alert(error);
+            alert(error.responseText);
+            console.log(error);
+        }
+    });
+    $.ajax({
+        url: "/api/game/player/" + player.id,
+        type: "GET",
+        success: function (data) {
+            document.getElementById("historyList").innerHTML = data;
         },
+        error: function (error) {
+            alert(error.responseText);
+            console.log(error);
+        }
     });
 }
 
@@ -293,4 +299,63 @@ function updatePlayerSymbol() {
     if (document.getElementById("playerOName").innerText === player.name) {
         playerSymbol = 'O';
     }
+}
+
+function watchReplay(gameId) {
+    $.ajax({
+        url: "/api/game/replay/" + gameId,
+        type: "GET",
+        success: function (data) {
+            document.getElementById("gameArea").innerHTML = data;
+
+            const fields = document.getElementsByClassName("field");
+
+            for (let i = 0; i < fields.length; i++) {
+                fields[i].style.width = "100px";
+                fields[i].style.height = "100px";
+            }
+        },
+        error: function (error) {
+            alert(error);
+        },
+    });
+
+    $.ajax({
+        url: "/api/game/" + gameId,
+        type: "GET",
+        success: function (data) {
+            movesHistory = data.board.movesHistory;
+        },
+        error: function (error) {
+            alert(error.responseText);
+            console.log(error);
+        }
+    });
+}
+
+function replayNextTurn() {
+    let turn = document.getElementById("turnCounter").innerText;
+    if (turn >= movesHistory.split(";").length - 1) return;
+
+    let currentSymbol = document.getElementById("currentTurn").innerText;
+    let coords = movesHistory.split(";")[turn];
+    console.log(coords);
+    document.getElementById(coords).innerHTML = currentSymbol;
+
+    if (currentSymbol === "X") document.getElementById("currentTurn").innerText = "O";
+    else document.getElementById("currentTurn").innerText = "X";
+    document.getElementById("turnCounter").innerHTML = (++turn).toString();
+}
+
+function replayPreviousTurn() {
+    let turn = document.getElementById("turnCounter").innerText;
+    if (turn < 1) return;
+
+    let currentSymbol = document.getElementById("currentTurn").innerText;
+    let coords = movesHistory.split(";")[turn-1];
+    document.getElementById(coords).innerHTML = "";
+
+    if (currentSymbol === "X") document.getElementById("currentTurn").innerText = "O";
+    else document.getElementById("currentTurn").innerText = "X";
+    document.getElementById("turnCounter").innerText = (--turn).toString();
 }
