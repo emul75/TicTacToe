@@ -13,9 +13,8 @@ const connection = new signalR
 
 
 connection.on("enemyJoined", (gameId) => {
-    console.log("ENEMY joined ");
+    console.log("ENEMY joined");
     updateGameDetails();
-    updatePlayerSymbol();
 });
 
 connection.on("enemyLeft", () => {
@@ -84,8 +83,9 @@ async function notifyEnemy() {
 
 async function makeTurn(element, x, y, gameId) {
     if (turnCounter < 0) return;
-    if (element.innerHTML !== "") return;
-
+    if (element.innerHTML === "X" || element.innerHTML === "O") return;
+    
+    updatePlayerSymbol();
     let currentTurn = document.getElementById("currentTurn").innerText;
     if (currentTurn !== playerSymbol) return;
 
@@ -199,7 +199,6 @@ function joinGame(id = document.getElementById("gameIdInput").value) {
             }
             connectSignalR().then(joinGroup).then(notifyEnemy);
             updateGameDetails();
-            updatePlayerSymbol();
         },
         error: function (error) {
             alert(error);
@@ -230,14 +229,14 @@ function reconnect(id = document.getElementById("currentGameId").value) {
             try{
                 updateGameDetails();
             } catch {
-                console.log("w8in for 2nd player");
+                console.log("w8in' for 2nd player");
             }
-            updatePlayerSymbol();
         },
         error: function (error) {
             alert(error);
         },
     });
+
 }
 
 function findGames() {

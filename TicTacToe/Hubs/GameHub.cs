@@ -1,7 +1,4 @@
-﻿using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Forms;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using TicTacToe.Enums;
 using TicTacToe.Models;

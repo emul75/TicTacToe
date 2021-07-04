@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System.Web;
-using Microsoft.AspNetCore.SignalR;
 using TicTacToe.Entities;
 using TicTacToe.Enums;
-using TicTacToe.Hubs;
 using TicTacToe.Models;
 using TicTacToe.Services;
 
@@ -29,25 +22,25 @@ namespace TicTacToe.Controllers
             _gameService = gameService;
             _dbContext = dbContext;
         }
-        //
-        // [HttpGet("player/all")]
-        // public ActionResult<IEnumerable<Player>> GetAllPlayers()
-        // {
-        //     var players = _gameService.GetAllPlayers();
-        //     return Ok(players);
-        // }
-        //
-        // [HttpGet("player")]
-        // public ActionResult<Player> GetPlayerById(int id)
-        // {
-        //     Player player = _gameService.GetPlayerById(id);
-        //     if (player == null)
-        //     {
-        //         return BadRequest();
-        //     }
-        //
-        //     return Ok(player);
-        // }
+
+        [HttpGet("player/all")]
+        public ActionResult<IEnumerable<Player>> GetAllPlayers()
+        {
+            var players = _gameService.GetAllPlayers();
+            return Ok(players);
+        }
+
+        [HttpGet("player/{id:int}")]
+        public ActionResult<Player> GetPlayerById(int id)
+        {
+            Player player = _gameService.GetPlayerById(id);
+            if (player == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(player);
+        }
 
         [HttpGet("player")]
         public ActionResult<Player> GetPlayerByName(string name)
@@ -70,10 +63,10 @@ namespace TicTacToe.Controllers
             return Ok(games);
         }
 
-        [HttpGet("games/player")]
-        public ActionResult<IEnumerable<Game>> GetAllGamesFromPlayer([FromQuery] int id)
+        [HttpGet("games")]
+        public ActionResult<IEnumerable<Game>> GetAllGamesFromPlayer(int playerId)
         {
-            var games = _gameService.GetAllGamesFromPlayer(id);
+            var games = _gameService.GetAllGamesFromPlayer(playerId);
             return Ok(games);
         }
 
@@ -83,7 +76,7 @@ namespace TicTacToe.Controllers
             Game game = _gameService.GetGameById(id);
             return Ok(game);
         }
-        
+
         [HttpGet("game/details/{id:int}")]
         public ActionResult GetGameDetails(int id)
         {
@@ -96,10 +89,9 @@ namespace TicTacToe.Controllers
         {
             Game game = _gameService.PlayerIsInNewOrStartedGame(playerId);
             if (game is not null) return PartialView("_ReconnectToGame", game);
-            
+
             var games = _gameService.GetNewGames();
             return PartialView("_FindGames", games);
-
         }
 
         [HttpPost("game/create")]
@@ -117,6 +109,7 @@ namespace TicTacToe.Controllers
             {
                 return Ok();
             }
+
             return BadRequest();
         }
 
@@ -140,7 +133,7 @@ namespace TicTacToe.Controllers
             Game game = _gameService.Reconnect(dto.GameId, dto.PlayerId);
             return PartialView("_Gameplay", game);
         }
-        
+
         [HttpPost("game/join")]
         public ActionResult Join(JoinGameDto dto)
         {
