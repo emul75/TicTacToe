@@ -12,9 +12,6 @@ Communication with the server is handled with HTTP requests, but Real-time conne
 
 Additions and changes to come in the future:
 - authentication with login and password
-- reconnecting to the game
-- player's profile
-- games history with replays
 - in game chat
 - new and beautiful user interface
-- server improvements
+- server improvements (security, custom exceptions, logs, change to MSSQL Server)
